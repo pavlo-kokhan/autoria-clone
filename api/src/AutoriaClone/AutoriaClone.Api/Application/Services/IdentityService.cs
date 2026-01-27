@@ -7,6 +7,7 @@ using AutoriaClone.Api.Application.Responses.Auth;
 using AutoriaClone.Api.Application.Services.Abstract;
 using AutoriaClone.Domain;
 using AutoriaClone.Domain.Aggregates.Entities.User;
+using AutoriaClone.Domain.Constants;
 using AutoriaClone.Domain.Results.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -25,6 +26,29 @@ public class IdentityService : IIdentityService
         _userManager = userManager;
         _unitOfWork = unitOfWork;
         _jwtTokenOptions = options.Value;
+    }
+
+    public async Task<Result<AccessTokenResponseDto>> RegisterUserAsync(string email, string password, CancellationToken cancellation = default)
+    {
+        if (await _unitOfWork.UserRepository.GetByEmailAsync(email, cancellation) is not null)
+            return UserValidationError.AlreadyExists;
+        
+        var user = new UserEntity { Email = email, UserName = email};
+        var createUserResult = await _userManager.CreateAsync(user, password);
+
+        if (!createUserResult.Succeeded)
+            return AuthValidationError.RegistrationFailed;
+        
+        var roleAssignmentResult = await _userManager.AddToRoleAsync(user, nameof(Role.User));
+
+        if (!roleAssignmentResult.Succeeded)
+            return AuthValidationError.RoleAssignmentFailed;
+        
+        var refreshToken = new RefreshTokenValueObject(
+            GenerateRefreshToken(),
+            DateTime.UtcNow.AddSeconds(_jwtTokenOptions.RefreshTokenExpiresIn));
+        
+        return await GetAccessTokenAsync(user, refreshToken);
     }
 
     public async Task<Result<AccessTokenResponseDto>> GetAccessTokenAsync(string email, string password, CancellationToken cancellationToken = default)

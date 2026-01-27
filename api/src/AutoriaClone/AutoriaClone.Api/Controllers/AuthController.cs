@@ -1,5 +1,6 @@
 ﻿using AutoriaClone.Api.Application.Queries.Auth.AccessToken;
 using AutoriaClone.Api.Application.Queries.Auth.RefreshToken;
+using AutoriaClone.Api.Application.Queries.Auth.Registration;
 using AutoriaClone.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,15 @@ public class AuthController : ControllerBase
     public AuthController(IMediator mediator)
         => _mediator = mediator;
 
-    [HttpPost("token")]
-    public async Task<IActionResult> GetTokenAsync(AccessTokenQuery request, CancellationToken cancellation)
-        => (await _mediator.Send(request, cancellation)).ToActionResult();
+    [HttpPost("register")]
+    public async Task<IActionResult> RegisterAsync(RegistrationAccessTokenQuery request, CancellationToken cancellationToken = default)
+        => (await _mediator.Send(request, cancellationToken)).ToActionResult();
+
+    [HttpPost("access-token")]
+    public async Task<IActionResult> GetTokenAsync(AccessTokenQuery request, CancellationToken cancellationToken = default)
+        => (await _mediator.Send(request, cancellationToken)).ToActionResult();
 
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshTokenAsync(RefreshTokenQuery request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RefreshTokenAsync(RefreshTokenQuery request, CancellationToken cancellationToken = default)
         => (await _mediator.Send(request, cancellationToken)).ToActionResult();
 }

@@ -5,6 +5,7 @@ using AutoriaClone.Api.Application.Services.Abstract;
 using AutoriaClone.Api.Extensions;
 using AutoriaClone.Api.Filters;
 using AutoriaClone.Api.Middlewares;
+using AutoriaClone.Infrastructure;
 using AutoriaClone.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -35,7 +36,8 @@ builder.Services
     .AddCors()
     .AddOpenApi()
     .AddScoped<AccessTokenMiddleware>()
-    .AddScoped<IIdentityService, IdentityService>();
+    .AddScoped<IIdentityService, IdentityService>()
+    .AddScoped<DatabaseSeeder>();
 
 var app = builder.Build();
 
@@ -60,5 +62,6 @@ app.MapControllers();
 
 using var scope = app.Services.CreateScope();
 await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
+await scope.ServiceProvider.GetRequiredService<DatabaseSeeder>().SeedAsync();
 
 await app.RunAsync();

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using AutoriaClone.Api.Application.Extensions.Validation;
 using FluentValidation;
 
 namespace AutoriaClone.Api.Application.Queries.Auth.AccessToken;
@@ -7,10 +8,7 @@ public partial class AccessTokenQueryValidator : AbstractValidator<AccessTokenQu
 {
     public AccessTokenQueryValidator()
     {
-        RuleFor(q => q.UserName).NotEmpty();
-        RuleFor(q => q.Password).Matches(PasswordRegex());
+        RuleFor(q => q.Email).Email();
+        RuleFor(q => q.Password).Password();
     }
-
-    [GeneratedRegex("^.{8,}$")]
-    private static partial Regex PasswordRegex();
 }
