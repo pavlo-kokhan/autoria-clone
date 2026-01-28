@@ -15,6 +15,11 @@ public class UserRepository : IUserRepository
             .Set<UserEntity>()
             .FirstOrDefaultAsync(u => u.NormalizedEmail == email.ToUpper(), cancellationToken);
 
+    public Task<UserEntity?> GetByIdAsync(int userId, CancellationToken cancellationToken = default) 
+        => _dbContext
+            .Set<UserEntity>()
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
     public Task<UserEntity?> GetByRefreshTokenAsync(string token, CancellationToken cancellationToken = default)
         => _dbContext
             .Set<UserEntity>()

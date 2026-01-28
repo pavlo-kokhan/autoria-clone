@@ -20,5 +20,13 @@ public class UserEntityConfiguration : IEntityTypeConfiguration<UserEntity>
             rt.Property(r => r.Token).IsRequired();
             rt.Property(r => r.ExpiresAt).IsRequired();
         });
+        
+        builder.OwnsOne<UserContactsValueObject>(u => u.Contacts, rt =>
+        {
+            rt.ToTable("UserContacts");
+            rt.WithOwner().HasForeignKey("UserId");
+            rt.Property<int>("Id");
+            rt.HasKey("Id");
+        });
     }
 }

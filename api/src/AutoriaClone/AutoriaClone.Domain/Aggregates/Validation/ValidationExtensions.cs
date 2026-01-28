@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using AutoriaClone.Domain.Results;
 using AutoriaClone.Domain.Results.Generic;
 using AutoriaClone.Domain.ValidationErrors;
@@ -25,4 +26,35 @@ public static partial class ValidationExtensions
 
         return entity;
     }
+    
+    public static void Email<T>(this IRuleBuilderInitial<T, string> builder)
+        => builder.NotEmpty().EmailAddress();
+
+    public static void Password<T>(this IRuleBuilderInitial<T, string> builder)
+        => builder.NotEmpty().Matches(PasswordRegex());
+    
+    public static void FirstNameOptional<T>(this IRuleBuilderInitial<T, string?> builder)
+        => builder
+            .MaximumLength(50)
+            .When(x => x is not null);
+    
+    public static void LastNameOptional<T>(this IRuleBuilderInitial<T, string?> builder)
+        => builder
+            .MaximumLength(50)
+            .When(x => x is not null);
+    
+    public static void PhoneNumberOptional<T>(this IRuleBuilderInitial<T, string?> builder)
+        => builder
+            .Must(x => x is not null && x.StartsWith("+"))
+            .MaximumLength(15)
+            .When(x => x is not null);
+    
+    public static void TelegramUserNameOptional<T>(this IRuleBuilderInitial<T, string?> builder)
+        => builder
+            .Must(x => x is not null && x.StartsWith("@"))
+            .MaximumLength(32)
+            .When(x => x is not null);
+    
+    [GeneratedRegex("^.{8,}$")]
+    private static partial Regex PasswordRegex();
 }

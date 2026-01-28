@@ -1,5 +1,4 @@
-using System.Text.RegularExpressions;
-using AutoriaClone.Api.Application.Extensions.Validation;
+using AutoriaClone.Domain.Aggregates.Validation;
 using FluentValidation;
 
 namespace AutoriaClone.Api.Application.Queries.Auth.AccessToken;
