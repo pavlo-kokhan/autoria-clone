@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using AutoriaClone.Api.Application.Options;
 using AutoriaClone.Domain.Aggregates.Attributes;
 using AutoriaClone.Domain.Aggregates.Entities.User;
 using AutoriaClone.Domain.Aggregates.ValueObjects;
@@ -6,6 +7,7 @@ using AutoriaClone.Infrastructure.Persistence;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Azure;
 
 namespace AutoriaClone.Api.Extensions;
 
@@ -45,4 +47,15 @@ public static class ServiceCollectionExtensions
                 .As(t => t.GetInterfaces()
                     .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IValidator<>)))
                 .WithSingletonLifetime());
+
+    public static IServiceCollection AddAzureBlobServiceClient(this IServiceCollection serviceCollection, IConfiguration configuration)
+    {
+        serviceCollection.AddAzureClients(builder => 
+        {
+            builder.AddBlobServiceClient(configuration["AzureBlobStorageOptions:ConnectionString"]!);
+        });
+
+        return serviceCollection
+            .Configure<AzureBlobStorageOptions>(configuration.GetSection(AzureBlobStorageOptions.SectionName));
+    }
 }

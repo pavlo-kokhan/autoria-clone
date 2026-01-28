@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.28.0-beta.1" />
         <PackageReference Include="MediatR" Version="12.5.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4"/>
@@ -14,6 +15,7 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.1" />
         <PackageReference Include="Scalar.AspNetCore" Version="2.12.18" />
         <PackageReference Include="Scrutor" Version="6.0.1" />
     </ItemGroup>
@@ -25,7 +27,6 @@
 
     <ItemGroup>
       <Folder Include="Application\Queries\" />
-      <Folder Include="Application\Responses\" />
     </ItemGroup>
 
 </Project>

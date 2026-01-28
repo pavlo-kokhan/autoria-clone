@@ -1,5 +1,6 @@
 using System.Data.Common;
 using AutoriaClone.Domain;
+using AutoriaClone.Domain.Aggregates.Entities.File;
 using AutoriaClone.Domain.Aggregates.Entities.User;
 using AutoriaClone.Infrastructure;
 using AutoriaClone.Infrastructure.Persistence;
@@ -31,7 +32,8 @@ public static class ServiceCollectionDbExtensions
     public static IServiceCollection AddRepositories(this IServiceCollection serviceCollection)
         => serviceCollection
             .AddScoped<IUnitOfWork, UnitOfWork>()
-            .AddScoped<IUserRepository, UserRepository>();
+            .AddScoped<IUserRepository, UserRepository>()
+            .AddScoped<IFileRepository, FileRepository>();
     
     private static DbDataSource BuildSource(string connectionString)
         => new NpgsqlDataSourceBuilder(connectionString)

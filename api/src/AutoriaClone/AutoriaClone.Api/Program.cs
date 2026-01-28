@@ -1,10 +1,15 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
+using AutoriaClone.Api;
 using AutoriaClone.Api.Application.Services;
 using AutoriaClone.Api.Application.Services.Abstract;
+using AutoriaClone.Api.Application.Services.BackgroundServices;
+using AutoriaClone.Api.Application.Services.File;
+using AutoriaClone.Api.Application.Services.Providers;
 using AutoriaClone.Api.Extensions;
 using AutoriaClone.Api.Filters;
 using AutoriaClone.Api.Middlewares;
+using AutoriaClone.Domain.Providers.Abstract;
 using AutoriaClone.Infrastructure;
 using AutoriaClone.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +31,7 @@ builder.Services
     .AddPipelines()
     .AddDatabaseContext(builder.Configuration)
     .AddRepositories()
+    .AddHttpContextAccessor()
     .AddControllers(options =>
     {
         options.Filters.Add<ResultableActionFilterAttribute>();
@@ -34,10 +40,15 @@ builder.Services
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
     .Services
     .AddCors()
-    .AddOpenApi()
+    .AddOpenApi("v1", options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>())
     .AddScoped<AccessTokenMiddleware>()
     .AddScoped<IIdentityService, IdentityService>()
-    .AddScoped<DatabaseSeeder>();
+    .AddScoped<IUserProvider, UserProvider>()
+    .AddScoped<DatabaseSeeder>()
+    .AddAzureBlobServiceClient(builder.Configuration)
+    .AddScoped<IBlobsConnectionVerifier, BlobsConnectionVerifier>()
+    .AddHostedService<InitialBackgroundService>()
+    .AddSingleton<IFileService, AzureBlobStorageFileService>();
 
 var app = builder.Build();
 
@@ -50,7 +61,7 @@ if (app.Environment.IsDebug() || app.Environment.IsDevelopment())
     app.MapScalarApiReference(options =>
     {
         options
-            .AddPreferredSecuritySchemes(AuthenticationScheme)
+            .WithPreferredScheme(AuthenticationScheme)
             .AddHttpAuthentication(AuthenticationScheme, scheme => scheme.Token = "{your_token_here}");
     });
 }
