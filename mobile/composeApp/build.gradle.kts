@@ -1,11 +1,36 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.buildkonfig)
+    kotlin("plugin.serialization") version "2.3.0"
+}
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
+
+buildkonfig {
+    packageName = "com.vpch.autoriamobile"
+
+    val androidUrl = localProperties.getProperty("MY_API_URL") ?: "http://10.0.2.2:5091"
+    val baseUrl = localProperties.getProperty("MY_API_URL") ?: "http://localhost:5091"
+
+    defaultConfigs {
+        buildConfigField(STRING, "BASE_URL", baseUrl)
+
+        targetConfigs("android") {
+            buildConfigField(STRING, "BASE_URL", androidUrl)
+        }
+    }
+
 }
 
 kotlin {
@@ -29,6 +54,11 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+
+            implementation(libs.ktor.client.android)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -39,6 +69,10 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -47,6 +81,7 @@ kotlin {
 }
 
 android {
+
     namespace = "com.vpch.autoriamobile"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
