@@ -1,7 +1,7 @@
 package com.vpch.autoriamobile.core.presentation.theme
 
 import androidx.compose.runtime.Composable
-
+import androidx.compose.material3.Typography
 
 //@Composable
 //fun LvivFixTheme(
@@ -35,5 +35,9 @@ object AppTheme {
     val colors: AppColors
         @Composable
         get() = LocalAppColors.current
+
+    val typography: Typography
+        @Composable
+        get() = AppTypography()
 
 }

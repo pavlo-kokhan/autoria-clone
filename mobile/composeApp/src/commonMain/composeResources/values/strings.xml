@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">AutoRia Clone</string>
+    <string name="login_title">Log In</string>
+    <string name="registration_title">Registration</string>
+    <string name="email_placeholder">Enter email</string>
+    <string name="password_placeholder">Password</string>
+    <string name="btn_signin">Sign In</string>
+    <string name="btn_signup">Sign up</string>
+    <string name="error_short_password">Password must be at least 8 characters</string>
+    <string name="dont_have_profile">Don't have a profile yet?</string>
+</resources>
