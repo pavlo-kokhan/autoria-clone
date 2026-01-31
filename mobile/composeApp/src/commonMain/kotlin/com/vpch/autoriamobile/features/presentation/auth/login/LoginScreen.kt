@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,20 +40,37 @@ import autoriamobile.composeapp.generated.resources.password_placeholder
 import com.vpch.autoriamobile.core.presentation.theme.AppTheme
 import com.vpch.autoriamobile.features.presentation.auth.components.AuthTextField
 import com.vpch.autoriamobile.features.presentation.components.text.CustomText
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 @Preview(showBackground = true)
 fun LoginScreen(
     modifier: Modifier = Modifier,
+    onNavigateToRegistration: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var emailError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<StringResource?>(null) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = AppTheme.colors.textError,
+                    contentColor = Color.White
+                )
+            }
+        }
+    ) { paddingValues ->
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(color = AppTheme.colors.background)
+            .padding(paddingValues)
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -105,9 +127,10 @@ fun LoginScreen(
             fontWeight = FontWeight.Bold,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.clickable(
-                onClick = {}
+                onClick = onNavigateToRegistration
             )
         )
 
+    }
     }
 }

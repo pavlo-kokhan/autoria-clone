@@ -24,11 +24,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import autoriamobile.composeapp.generated.resources.Res
+import autoriamobile.composeapp.generated.resources.error_unknown
 import autoriamobile.composeapp.generated.resources.ic_clear
 import autoriamobile.composeapp.generated.resources.ic_eye
 import autoriamobile.composeapp.generated.resources.ic_eye_closed
 import com.vpch.autoriamobile.core.presentation.theme.AppTheme
 import com.vpch.autoriamobile.features.presentation.components.text.CustomText
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
 @Composable
@@ -37,7 +40,7 @@ fun AuthTextField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     modifier: Modifier = Modifier,
-    errorMessage: String? = null,
+    errorMessage: StringResource? = null,
     isPassword: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next
@@ -116,7 +119,7 @@ fun AuthTextField(
         )
 
         CustomText(
-            text = errorMessage ?: " ",
+            text = stringResource(errorMessage ?: Res.string.error_unknown),
             color = if (errorMessage != null) AppTheme.colors.textError else Color.Transparent,
             style = AppTheme.typography.bodySmall,
             modifier = Modifier.padding(start = 8.dp, top = 4.dp)

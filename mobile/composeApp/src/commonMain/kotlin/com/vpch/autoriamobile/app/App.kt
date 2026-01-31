@@ -10,6 +10,6 @@ import com.vpch.autoriamobile.features.presentation.auth.login.LoginScreen
 @Preview
 fun App() {
     MaterialTheme {
-        LoginScreen()
+        NavigationRoot()
     }
 }

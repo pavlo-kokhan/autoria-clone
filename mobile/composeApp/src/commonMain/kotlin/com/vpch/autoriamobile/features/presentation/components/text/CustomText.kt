@@ -8,6 +8,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import com.vpch.autoriamobile.core.presentation.theme.AppTheme
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun CustomText(
@@ -28,3 +29,4 @@ fun CustomText(
         modifier = modifier
     )
 }
+
