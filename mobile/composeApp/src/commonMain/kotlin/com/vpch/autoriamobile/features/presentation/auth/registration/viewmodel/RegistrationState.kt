@@ -1,4 +1,4 @@
-package com.vpch.autoriamobile.features.presentation.auth.registration
+package com.vpch.autoriamobile.features.presentation.auth.registration.viewmodel
 
 import org.jetbrains.compose.resources.StringResource
 

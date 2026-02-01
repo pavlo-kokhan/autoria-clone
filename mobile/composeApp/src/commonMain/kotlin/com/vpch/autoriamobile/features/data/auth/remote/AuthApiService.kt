@@ -3,7 +3,9 @@ package com.vpch.autoriamobile.features.data.auth.remote
 import com.vpch.autoriamobile.Constants
 import com.vpch.autoriamobile.features.data.auth.dto.AuthErrorResponse
 import com.vpch.autoriamobile.features.data.auth.dto.AuthResponseDto
+import com.vpch.autoriamobile.features.data.auth.dto.LoginRequestDto
 import com.vpch.autoriamobile.features.data.auth.dto.RegisterRequestDto
+import com.vpch.autoriamobile.features.domain.auth.exceptions.InvalidCredentialsException
 import com.vpch.autoriamobile.features.domain.auth.exceptions.ServerErrorException
 import com.vpch.autoriamobile.features.domain.auth.exceptions.UserAlreadyExistsException
 import io.ktor.client.HttpClient
@@ -41,6 +43,25 @@ class AuthApiService(
         }
 
         throw ServerErrorException("Server Error: ${response.status.value} - $bodyText")
+    }
+
+    suspend fun login(request: LoginRequestDto): AuthResponseDto {
+        val response = client.post(Constants.BASE_URL + "/auth/access-token") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+
+        val bodyText = response.bodyAsText()
+
+        if (response.status.value in 200..299) {
+            return Json.decodeFromString<AuthResponseDto>(bodyText)
+        }
+
+        if (response.status == io.ktor.http.HttpStatusCode.BadRequest) {
+            throw InvalidCredentialsException()
+        }
+
+        throw ServerErrorException("Server Error: ${response.status.value}")
     }
 
 }

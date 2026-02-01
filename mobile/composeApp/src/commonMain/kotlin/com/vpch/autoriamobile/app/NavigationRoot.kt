@@ -23,6 +23,10 @@ fun NavigationRoot() {
                     onNavigateToRegistration = {
                         backStack.clear()
                         backStack.add(Screen.Registration)
+                    },
+                    onNavigateToHome = {
+                        backStack.clear()
+                        backStack.add(Screen.Home)
                     }
                 )
             }

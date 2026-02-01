@@ -38,6 +38,9 @@ import autoriamobile.composeapp.generated.resources.password_placeholder
 import autoriamobile.composeapp.generated.resources.registration_title
 import com.vpch.autoriamobile.core.presentation.theme.AppTheme
 import com.vpch.autoriamobile.features.presentation.auth.components.AuthTextField
+import com.vpch.autoriamobile.features.presentation.auth.registration.viewmodel.RegistrationEffect
+import com.vpch.autoriamobile.features.presentation.auth.registration.viewmodel.RegistrationEvent
+import com.vpch.autoriamobile.features.presentation.auth.registration.viewmodel.RegistrationViewModel
 import com.vpch.autoriamobile.features.presentation.components.text.CustomText
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel

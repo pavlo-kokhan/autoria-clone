@@ -1,4 +1,4 @@
-package com.vpch.autoriamobile.features.presentation.auth.registration
+package com.vpch.autoriamobile.features.presentation.auth.registration.viewmodel
 
 sealed interface RegistrationEffect {
     data object NavigateToHome : RegistrationEffect

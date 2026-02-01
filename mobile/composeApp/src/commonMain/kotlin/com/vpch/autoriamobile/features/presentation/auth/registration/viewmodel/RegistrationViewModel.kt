@@ -1,10 +1,8 @@
-package com.vpch.autoriamobile.features.presentation.auth.registration
+package com.vpch.autoriamobile.features.presentation.auth.registration.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import autoriamobile.composeapp.generated.resources.Res
-import autoriamobile.composeapp.generated.resources.error_incorrect_email
-import autoriamobile.composeapp.generated.resources.error_short_password
+import com.vpch.autoriamobile.core.domain.validation.AuthValidator
 import com.vpch.autoriamobile.core.presentation.utils.toUiErrorMessage
 import com.vpch.autoriamobile.features.domain.auth.usecase.RegisterUseCase
 import kotlinx.coroutines.channels.Channel
@@ -42,11 +40,18 @@ class RegistrationViewModel(
 
     private fun register() {
         val currentState = _state.value
+        val emailError = AuthValidator.validateEmail(currentState.email)
+        val passwordError = AuthValidator.validatePassword(currentState.password)
 
-        val isEmailValid = validateEmail(currentState.email)
-        val isPasswordValid = validatePassword(currentState.password)
-
-        if (!isEmailValid || !isPasswordValid) return
+        if (emailError != null || passwordError != null) {
+            _state.update {
+                it.copy(
+                    emailError = emailError,
+                    passwordError = passwordError
+                )
+            }
+            return
+        }
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorRes = null) }
@@ -67,24 +72,6 @@ class RegistrationViewModel(
                     )
                 }
             }
-        }
-    }
-
-    private fun validateEmail(email: String): Boolean {
-        return if (email.isBlank() || !email.contains("@")) {
-            _state.update { it.copy(emailError = Res.string.error_incorrect_email) }
-            false
-        } else {
-            true
-        }
-    }
-
-    private fun validatePassword(password: String): Boolean {
-        return if (password.length < 8) {
-            _state.update { it.copy(passwordError = Res.string.error_short_password) }
-            false
-        } else {
-            true
         }
     }
 

@@ -1,4 +1,4 @@
-package com.vpch.autoriamobile.features.presentation.auth.registration
+package com.vpch.autoriamobile.features.presentation.auth.registration.viewmodel
 
 sealed interface RegistrationEvent {
     data class OnEmailChange(val email: String) : RegistrationEvent

@@ -3,7 +3,7 @@ package com.vpch.autoriamobile.features.domain.auth.usecase
 import com.vpch.autoriamobile.core.domain.validation.AuthSpecs
 import com.vpch.autoriamobile.features.domain.auth.repository.AuthRepository
 
-class RegisterUseCase(
+class LoginUseCase(
     private val repository: AuthRepository
 ) {
     suspend operator fun invoke(email: String, password: String): Result<Unit> {
@@ -15,7 +15,7 @@ class RegisterUseCase(
             return Result.failure(Exception("Password validation failed"))
         }
 
-        val result = repository.register(email, password)
+        val result = repository.login(email, password)
 
         return result.map { tokens ->
             Unit
