@@ -17,6 +17,7 @@ import autoriamobile.composeapp.generated.resources.stacksanstext_regular
 import autoriamobile.composeapp.generated.resources.stacksanstext_semibold
 import org.jetbrains.compose.resources.Font
 import androidx.compose.material3.Typography
+import androidx.compose.runtime.staticCompositionLocalOf
 
 @Composable
 fun stackSansHeadlineFamily() = FontFamily(
@@ -67,12 +68,12 @@ fun AppTypography(): Typography {
         ),
         bodyMedium = TextStyle(
             fontFamily = stackSansText,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
         ),
         bodySmall = TextStyle(
             fontFamily = stackSansText,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
         )
     )
