@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.vpch.autoriamobile.core.domain.validation.AuthValidator
 import com.vpch.autoriamobile.core.presentation.utils.toUiErrorMessage
 import com.vpch.autoriamobile.features.domain.auth.usecase.RegisterUseCase
+import com.vpch.autoriamobile.features.domain.user.usecase.LoadProfileUseCase
+import com.vpch.autoriamobile.features.presentation.auth.login.viewmodel.LoginEffect
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +15,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RegistrationViewModel(
-    private val registerUseCase: RegisterUseCase
+    private val registerUseCase: RegisterUseCase,
+    private val loadProfileUseCase: LoadProfileUseCase
 ): ViewModel() {
     private val _state = MutableStateFlow(RegistrationState())
     val state = _state.asStateFlow()
@@ -62,8 +65,14 @@ class RegistrationViewModel(
             )
 
             result.onSuccess {
-                _state.update { it.copy(isLoading = false) }
-                sendEffect(RegistrationEffect.NavigateToHome)
+                val profileResult = loadProfileUseCase()
+                profileResult.onSuccess {
+                    _state.update { it.copy(isLoading = false) }
+                    sendEffect(RegistrationEffect.NavigateToHome)
+                }.onFailure {
+                    _state.update { it.copy(isLoading = false) }
+                    sendEffect(RegistrationEffect.NavigateToHome)
+                }
             }.onFailure { error ->
                 _state.update {
                     it.copy(

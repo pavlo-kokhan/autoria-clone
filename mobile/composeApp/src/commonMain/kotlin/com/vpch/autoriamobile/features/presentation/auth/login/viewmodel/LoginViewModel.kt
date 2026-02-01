@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.vpch.autoriamobile.core.domain.validation.AuthValidator
 import com.vpch.autoriamobile.core.presentation.utils.toUiErrorMessage
 import com.vpch.autoriamobile.features.domain.auth.usecase.LoginUseCase
+import com.vpch.autoriamobile.features.domain.user.usecase.LoadProfileUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +14,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val loadProfileUseCase: LoadProfileUseCase
 ): ViewModel() {
     private val _state = MutableStateFlow(LoginState())
     val state = _state.asStateFlow()
@@ -62,8 +64,14 @@ class LoginViewModel(
             )
 
             result.onSuccess {
-                _state.update { it.copy(isLoading = false) }
-                sendEffect(LoginEffect.NavigateToHome)
+                val profileResult = loadProfileUseCase()
+                profileResult.onSuccess {
+                    _state.update { it.copy(isLoading = false) }
+                    sendEffect(LoginEffect.NavigateToHome)
+                }.onFailure {
+                    _state.update { it.copy(isLoading = false) }
+                    sendEffect(LoginEffect.NavigateToHome)
+                }
             }.onFailure { error ->
                 _state.update {
                     it.copy(

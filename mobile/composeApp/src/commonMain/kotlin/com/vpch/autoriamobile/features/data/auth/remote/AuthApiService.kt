@@ -9,11 +9,14 @@ import com.vpch.autoriamobile.features.domain.auth.exceptions.InvalidCredentials
 import com.vpch.autoriamobile.features.domain.auth.exceptions.ServerErrorException
 import com.vpch.autoriamobile.features.domain.auth.exceptions.UserAlreadyExistsException
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 
 class AuthApiService(
@@ -25,24 +28,19 @@ class AuthApiService(
             setBody(request)
         }
 
-        val bodyText = response.bodyAsText()
-        if (response.status.value in 200..299) {
-            return Json.decodeFromString<AuthResponseDto>(bodyText)
+        if (response.status.isSuccess()) {
+            return response.body()
         }
 
-        if (response.status == io.ktor.http.HttpStatusCode.BadRequest) {
-            try {
-                val errorResponse = Json.decodeFromString<AuthErrorResponse>(bodyText)
+        if (response.status == HttpStatusCode.BadRequest) {
+            val errorBody = runCatching { response.body<AuthErrorResponse>() }.getOrNull()
 
-                if (errorResponse.errors?.containsKey("USER_ALREADY_EXISTS") == true) {
-                    throw UserAlreadyExistsException()
-                }
-            } catch (e: Exception) {
-                if (e is UserAlreadyExistsException) throw e
+            if (errorBody?.errors?.containsKey("USER_ALREADY_EXISTS") == true) {
+                throw UserAlreadyExistsException()
             }
         }
 
-        throw ServerErrorException("Server Error: ${response.status.value} - $bodyText")
+        throw ServerErrorException("Server Error: ${response.status.value}")
     }
 
     suspend fun login(request: LoginRequestDto): AuthResponseDto {
@@ -51,13 +49,11 @@ class AuthApiService(
             setBody(request)
         }
 
-        val bodyText = response.bodyAsText()
-
-        if (response.status.value in 200..299) {
-            return Json.decodeFromString<AuthResponseDto>(bodyText)
+        if (response.status.isSuccess()) {
+            return response.body()
         }
 
-        if (response.status == io.ktor.http.HttpStatusCode.BadRequest) {
+        if (response.status == HttpStatusCode.BadRequest) {
             throw InvalidCredentialsException()
         }
 
