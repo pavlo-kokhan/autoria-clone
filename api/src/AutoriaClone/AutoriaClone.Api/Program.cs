@@ -32,6 +32,7 @@ builder.Services
     .AddDatabaseContext(builder.Configuration)
     .AddRepositories()
     .AddHttpContextAccessor()
+    .AddFluentEmail(builder.Configuration)
     .AddControllers(options =>
     {
         options.Filters.Add<ResultableActionFilterAttribute>();
@@ -48,7 +49,8 @@ builder.Services
     .AddAzureBlobServiceClient(builder.Configuration)
     .AddScoped<IBlobsConnectionVerifier, BlobsConnectionVerifier>()
     .AddHostedService<InitialBackgroundService>()
-    .AddSingleton<IFileService, AzureBlobStorageFileService>();
+    .AddSingleton<IStorageService, AzureStorageService>()
+    .AddScoped<IEmailSenderService, SmtpEmailSenderService>();
 
 var app = builder.Build();
 

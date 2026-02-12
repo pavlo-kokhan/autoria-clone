@@ -1,0 +1,7 @@
+﻿services:
+  autoriaclone.api:
+    image: autoriaclone.api
+    build:
+      context: .
+      dockerfile: AutoriaClone.Api/Dockerfile
+

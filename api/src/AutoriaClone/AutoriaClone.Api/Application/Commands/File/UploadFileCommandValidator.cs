@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using AutoriaClone.Domain.Aggregates.Validation;
+using FluentValidation;
 
 namespace AutoriaClone.Api.Application.Commands.File;
 
@@ -6,8 +7,8 @@ public class UploadFileCommandValidator : AbstractValidator<UploadFileCommand>
 {
     public UploadFileCommandValidator()
     {
-        RuleFor(x => x.File)
-            .NotNull()
-            .Must(f => f.Length <= 3_000_000);
+        RuleFor(x => x.FileName).FileName();
+        RuleFor(x => x.ContentType).FileContentType();
+        RuleFor(x => x.FileSize).FileSize();
     }
 }

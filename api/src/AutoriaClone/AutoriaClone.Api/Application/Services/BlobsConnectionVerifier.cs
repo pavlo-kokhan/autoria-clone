@@ -9,16 +9,16 @@ public class BlobsConnectionVerifier : IBlobsConnectionVerifier
 {
     private readonly ILogger<BlobsConnectionVerifier> _logger;
     private readonly BlobServiceClient _blobServiceClient;
-    private readonly AzureBlobStorageOptions _blobStorageOptions;
+    private readonly AzureStorageOptions _storageOptions;
 
     public BlobsConnectionVerifier(
         ILogger<BlobsConnectionVerifier> logger, 
         BlobServiceClient blobServiceClient, 
-        IOptions<AzureBlobStorageOptions> blobStorageOptions)
+        IOptions<AzureStorageOptions> blobStorageOptions)
     {
         _logger = logger;
         _blobServiceClient = blobServiceClient;
-        _blobStorageOptions = blobStorageOptions.Value;
+        _storageOptions = blobStorageOptions.Value;
     }
 
     public async Task CheckConnectionAsync()
@@ -37,12 +37,12 @@ public class BlobsConnectionVerifier : IBlobsConnectionVerifier
 
     public async Task EnsureContainersExistsAsync()
     {
-        await EnsureImagesContainerExistsAsync();
+        await EnsureContainerExistsAsync();
     }
     
-    private async Task EnsureImagesContainerExistsAsync()
+    private async Task EnsureContainerExistsAsync()
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_blobStorageOptions.ImagesContainerName);
+        var containerClient = _blobServiceClient.GetBlobContainerClient(_storageOptions.ContainerName);
         
         if (await containerClient.ExistsAsync())
             return;

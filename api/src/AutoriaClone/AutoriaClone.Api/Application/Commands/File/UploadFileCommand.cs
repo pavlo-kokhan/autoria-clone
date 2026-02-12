@@ -1,5 +1,5 @@
-﻿using AutoriaClone.Api.Application.Constants.ValidationErrors;
-using AutoriaClone.Api.Application.Responses.File;
+﻿using AutoriaClone.Api.Application.Responses.File;
+using AutoriaClone.Api.Application.Services;
 using AutoriaClone.Api.Application.Services.Abstract;
 using AutoriaClone.Domain;
 using AutoriaClone.Domain.Aggregates.Entities.File;
@@ -9,46 +9,47 @@ using MediatR;
 
 namespace AutoriaClone.Api.Application.Commands.File;
 
-public record UploadFileCommand(IFormFile File) : IRequest<Result<UploadFileResponseDto>>
+public record UploadFileCommand(string FileName, string ContentType, long FileSize) : IRequest<Result<InitFileUploadResponseDto>>
 {
-    public class Handler : IRequestHandler<UploadFileCommand, Result<UploadFileResponseDto>>
+    public class Handler : IRequestHandler<UploadFileCommand, Result<InitFileUploadResponseDto>>
     {
-        private readonly IFileService _fileService;
+        private readonly IStorageService _storageService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHostEnvironment _hostEnvironment;
         private readonly IUserProvider _userProvider;
         
-        public Handler(IFileService fileService, IUnitOfWork unitOfWork, IHostEnvironment hostEnvironment, IUserProvider userProvider)
+        public Handler(IStorageService storageService, IUnitOfWork unitOfWork, IHostEnvironment hostEnvironment, IUserProvider userProvider)
         {
-            _fileService = fileService;
+            _storageService = storageService;
             _unitOfWork = unitOfWork;
             _hostEnvironment = hostEnvironment;
             _userProvider = userProvider;
         }
 
-        public async Task<Result<UploadFileResponseDto>> Handle(UploadFileCommand request, CancellationToken cancellationToken)
+        public async Task<Result<InitFileUploadResponseDto>> Handle(UploadFileCommand request, CancellationToken cancellationToken)
         {
-            var extension = new FileInfo(request.File.FileName).Extension;
             var userId = _userProvider.Id;
-            var key = BuildBlobKey(userId, extension);
-
-            var fileCreateResult = FileEntity.Create(key, extension, userId);
-
-            if (fileCreateResult.IsFailure)
-                return fileCreateResult.ToFailureResult<UploadFileResponseDto>();
+            var fileName = Path.GetFileNameWithoutExtension(request.FileName);
+            var fileExtension = Path.GetExtension(request.FileName);
             
-            var uploadFileInfo = await _fileService.UploadAsync(key, request.File, cancellationToken);
+            var key = BlobKeyBuilder
+                .Create()
+                .InFolder(_hostEnvironment.EnvironmentName)
+                .WithOwner(userId)
+                .WithName(fileName, fileExtension)
+                .ToString();
 
-            if (uploadFileInfo is null)
-                return FileValidationError.FailedToUpload;
+            var createFileResult = FileEntity.Create(key, fileExtension, userId);
 
-            await _unitOfWork.FileRepository.CreateAsync(fileCreateResult.Data, cancellationToken);
+            if (createFileResult.IsFailure)
+                return createFileResult.ToFailureResult<InitFileUploadResponseDto>();
+
+            await _unitOfWork.FileRepository.CreateAsync(createFileResult.Data, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new UploadFileResponseDto(fileCreateResult.Data.Id, uploadFileInfo.SasUrl);
+            return  new InitFileUploadResponseDto(
+                _storageService.GenerateWriteSasUrl(key, request.ContentType),
+                createFileResult.Data.Id);
         }
-        
-        private string BuildBlobKey(int userId, string extension)
-            => $"{_hostEnvironment.EnvironmentName}/{userId}/{Guid.NewGuid():N}{extension}";
     }
 }

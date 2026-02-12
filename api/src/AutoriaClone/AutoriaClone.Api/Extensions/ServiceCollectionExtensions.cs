@@ -52,10 +52,23 @@ public static class ServiceCollectionExtensions
     {
         serviceCollection.AddAzureClients(builder => 
         {
-            builder.AddBlobServiceClient(configuration["AzureBlobStorageOptions:ConnectionString"]!);
+            builder.AddBlobServiceClient(configuration["AzureStorageOptions:ConnectionString"]!);
         });
 
         return serviceCollection
-            .Configure<AzureBlobStorageOptions>(configuration.GetSection(AzureBlobStorageOptions.SectionName));
+            .Configure<AzureStorageOptions>(configuration.GetSection(AzureStorageOptions.SectionName));
     }
+
+    public static IServiceCollection AddFluentEmail(this IServiceCollection serviceCollection,
+        IConfiguration configuration)
+        => serviceCollection
+            .AddFluentEmail(
+                configuration["SmtpOptions:SenderEmail"],
+                configuration["SmtpOptions:SenderName"])
+            .AddSmtpSender(
+                configuration["SmtpOptions:Server"],
+                configuration.GetValue<int>("SmtpOptions:Port"),
+                configuration["SmtpOptions:Login"],
+                configuration["SmtpOptions:Password"])
+            .Services;
 }
