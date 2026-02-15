@@ -1,0 +1,9 @@
+{
+  "apiKey": "64bdf56802c3e8021117607f0574b14c",
+  "modelName": "Address",
+  "calledMethod": "getCities", // Метод getCities
+  "methodProperties": {
+    "AreaRef": "71508138-9b87-11de-822f-000c2965ae0e", // area ref
+    "Limit": 10 // optional
+  }
+}

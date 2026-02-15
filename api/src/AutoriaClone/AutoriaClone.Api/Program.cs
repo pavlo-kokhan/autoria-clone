@@ -7,6 +7,9 @@ using AutoriaClone.Api.Application.Services.BackgroundServices;
 using AutoriaClone.Api.Application.Services.File;
 using AutoriaClone.Api.Application.Services.Identity;
 using AutoriaClone.Api.Application.Services.Providers;
+using AutoriaClone.Api.Application.Services.Providers.RegionProvider;
+using AutoriaClone.Api.Application.Services.Providers.RegionProvider.NovaPoshta;
+using AutoriaClone.Api.Application.Services.Providers.RegionProvider.UkrPoshta;
 using AutoriaClone.Api.Extensions;
 using AutoriaClone.Api.Filters;
 using AutoriaClone.Api.Middlewares;
@@ -53,7 +56,11 @@ builder.Services
     .AddScoped<IBlobsConnectionVerifier, BlobsConnectionVerifier>()
     .AddHostedService<InitialBackgroundService>()
     .AddSingleton<IStorageService, AzureStorageService>()
-    .AddScoped<IEmailSenderService, AzureEmailSenderService>();
+    .AddScoped<IEmailSenderService, AzureEmailSenderService>()
+    .AddUkrPoshtaHttpClient(builder.Configuration)
+    .AddScoped<IUkrPoshtaRegionProvider, UkrPoshtaRegionProvider>()
+    .AddNovaPoshtaHttpClient(builder.Configuration)
+    .AddScoped<INovaPoshtaRegionProvider, NovaPoshtaRegionProvider>();
 
 var app = builder.Build();
 
@@ -80,5 +87,7 @@ app.MapControllers();
 using var scope = app.Services.CreateScope();
 await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
 await scope.ServiceProvider.GetRequiredService<DatabaseSeeder>().SeedAsync();
+await scope.ServiceProvider.GetRequiredService<INovaPoshtaRegionProvider>().GetRegionsAsync();
+await scope.ServiceProvider.GetRequiredService<INovaPoshtaRegionProvider>().GetCitiesAsync("71508138-9b87-11de-822f-000c2965ae0e");
 
 await app.RunAsync();
