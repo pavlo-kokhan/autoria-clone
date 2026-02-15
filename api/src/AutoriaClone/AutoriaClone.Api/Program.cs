@@ -44,6 +44,7 @@ builder.Services
     .Services
     .AddCors()
     .AddOpenApi("v1", options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>())
+    .AddScoped<ExceptionHandlerMiddleware>()
     .AddScoped<AccessTokenMiddleware>()
     .AddScoped<IIdentityService, IdentityService>()
     .AddScoped<IUserProvider, UserProvider>()
@@ -57,6 +58,7 @@ builder.Services
 var app = builder.Build();
 
 app.UseCors(policyBuilder => policyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().Build());
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseMiddleware<AccessTokenMiddleware>();
 
 if (app.Environment.IsDebug() || app.Environment.IsDevelopment())
