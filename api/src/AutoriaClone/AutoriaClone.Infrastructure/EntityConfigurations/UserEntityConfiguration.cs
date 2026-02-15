@@ -1,4 +1,5 @@
 ﻿using AutoriaClone.Domain.Aggregates.Entities.User;
+using AutoriaClone.Domain.Aggregates.ValueObjects.Address;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,9 +22,9 @@ public class UserEntityConfiguration : IEntityTypeConfiguration<UserEntity>
             rt.Property(r => r.ExpiresAt).IsRequired();
         });
         
-        builder.OwnsOne<UserContactsValueObject>(u => u.Contacts, rt =>
+        builder.OwnsOne<AddressValueObject>(u => u.Address, rt =>
         {
-            rt.ToTable("UserContacts");
+            rt.ToTable("UserAddresses");
             rt.WithOwner().HasForeignKey("UserId");
             rt.Property<int>("Id");
             rt.HasKey("Id");

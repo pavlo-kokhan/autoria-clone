@@ -1,5 +1,7 @@
 ﻿using AutoriaClone.Domain.Aggregates.Validation;
+using AutoriaClone.Domain.Aggregates.ValueObjects.Address;
 using AutoriaClone.Domain.Results;
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 
 namespace AutoriaClone.Domain.Aggregates.Entities.User;
@@ -8,11 +10,19 @@ public class UserEntity : IdentityUser<int>
 {
     private const int MaxActiveRefreshTokens = 5;
     private readonly List<RefreshTokenValueObject> _refreshTokens = [];
-    private static readonly UserContactsValueObjectValidator ContactsValidator = new();
+    private static readonly IValidator<UserEntity> Validator = new UserEntityValidator(new AddressValueObjectValidator());
     
     public IReadOnlyCollection<RefreshTokenValueObject> RefreshTokens => _refreshTokens;
 
-    public UserContactsValueObject? Contacts { get; private set; }
+    public string? FirstName { get; private set; }
+    
+    public string? LastName { get; private set; }
+    
+    public string? TelegramUserName { get; set; }
+    
+    public string? WebSiteUrl { get; set; }
+    
+    public AddressValueObject? Address { get; private set; }
     
     public void AddRefreshToken(RefreshTokenValueObject refreshToken)
     {
@@ -35,10 +45,21 @@ public class UserEntity : IdentityUser<int>
     public RefreshTokenValueObject? GetRefreshToken(string refreshToken)
         => _refreshTokens.FirstOrDefault(rt => rt.Token == refreshToken);
     
-    public Result UpdateContacts(UserContactsValueObject contacts)
+    public Result Update(
+        string? firstName,
+        string? lastName,
+        string? phoneNumber,
+        string? telegramUserName,
+        string? webSiteUrl,
+        AddressValueObject? address)
     {
-        Contacts = contacts;
+        FirstName = firstName;
+        LastName = lastName;
+        PhoneNumber = phoneNumber;
+        TelegramUserName = telegramUserName;
+        WebSiteUrl = webSiteUrl;
+        Address = address;
 
-        return ContactsValidator.ToResult(Contacts);
+        return Validator.ToResult(this);
     }
 }

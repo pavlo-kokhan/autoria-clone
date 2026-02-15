@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using AutoriaClone.Api.Application.Options;
+using AutoriaClone.Api.Application.Services;
+using AutoriaClone.Api.Application.Services.Abstract;
 using AutoriaClone.Domain.Aggregates.Attributes;
 using AutoriaClone.Domain.Aggregates.Entities.User;
 using AutoriaClone.Domain.Aggregates.ValueObjects;
@@ -23,11 +25,15 @@ public static class ServiceCollectionExtensions
                 options.Password.RequireUppercase = false;
                 options.Password.RequiredLength = 8;
                 options.Password.RequiredUniqueChars = 2;
+                
+                options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+                options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
             })
             .AddUserManager<UserManager<UserEntity>>()
             .AddRoles<IdentityRole<int>>()
             .AddRoleManager<RoleManager<IdentityRole<int>>>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders()
             .Services;
     
     public static IServiceCollection AddFluentValidation(this IServiceCollection serviceCollection)
@@ -59,16 +65,12 @@ public static class ServiceCollectionExtensions
             .Configure<AzureStorageOptions>(configuration.GetSection(AzureStorageOptions.SectionName));
     }
 
-    public static IServiceCollection AddFluentEmail(this IServiceCollection serviceCollection,
-        IConfiguration configuration)
+    public static IServiceCollection AddEmailService(this IServiceCollection serviceCollection, IConfiguration configuration)
         => serviceCollection
-            .AddFluentEmail(
-                configuration["SmtpOptions:SenderEmail"],
-                configuration["SmtpOptions:SenderName"])
-            .AddSmtpSender(
-                configuration["SmtpOptions:Server"],
-                configuration.GetValue<int>("SmtpOptions:Port"),
-                configuration["SmtpOptions:Login"],
-                configuration["SmtpOptions:Password"])
-            .Services;
+            .AddScoped<IEmailSenderService, AzureEmailSenderService>()
+            .Configure<AzureCommunicationServicesOptions>(configuration.GetSection(AzureCommunicationServicesOptions.SectionName));
+    
+    public static IServiceCollection AddBaseUrlOptions(this IServiceCollection serviceCollection, IConfiguration configuration)
+        => serviceCollection
+            .Configure<BaseUrlOptions>(configuration.GetSection(BaseUrlOptions.SectionName));
 }

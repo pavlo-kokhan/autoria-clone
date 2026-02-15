@@ -8,29 +8,36 @@ using AutoriaClone.Api.Application.Services.Abstract;
 using AutoriaClone.Domain;
 using AutoriaClone.Domain.Aggregates.Entities.User;
 using AutoriaClone.Domain.Constants;
+using AutoriaClone.Domain.Results;
 using AutoriaClone.Domain.Results.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AutoriaClone.Api.Application.Services;
+namespace AutoriaClone.Api.Application.Services.Identity;
 
 public class IdentityService : IIdentityService
 {
     private readonly UserManager<UserEntity> _userManager;
     private readonly JwtTokenOptions _jwtTokenOptions;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailSenderService _emailSenderService;
 
-    public IdentityService(UserManager<UserEntity> userManager, IOptions<JwtTokenOptions> options, IUnitOfWork unitOfWork)
+    public IdentityService(
+        UserManager<UserEntity> userManager,
+        IOptions<JwtTokenOptions> options,
+        IUnitOfWork unitOfWork,
+        IEmailSenderService emailSenderService)
     {
         _userManager = userManager;
         _unitOfWork = unitOfWork;
+        _emailSenderService = emailSenderService;
         _jwtTokenOptions = options.Value;
     }
 
-    public async Task<Result<AccessTokenResponseDto>> RegisterUserAsync(string email, string password, CancellationToken cancellation = default)
+    public async Task<Result<AccessTokenResponseDto>> RegisterUserAsync(string email, string password, CancellationToken cancellationToken = default)
     {
-        if (await _unitOfWork.UserRepository.GetByEmailAsync(email, cancellation) is not null)
+        if (await _unitOfWork.UserRepository.GetByEmailAsync(email, cancellationToken) is not null)
             return UserValidationError.AlreadyExists;
         
         var user = new UserEntity { Email = email, UserName = email};
@@ -43,12 +50,47 @@ public class IdentityService : IIdentityService
 
         if (!roleAssignmentResult.Succeeded)
             return AuthValidationError.RoleAssignmentFailed;
-        
+
+        await SendConfirmationEmailAsync(user, cancellationToken);
+
         var refreshToken = new RefreshTokenValueObject(
             GenerateRefreshToken(),
             DateTime.UtcNow.AddSeconds(_jwtTokenOptions.RefreshTokenExpiresIn));
         
         return await GetAccessTokenAsync(user, refreshToken);
+    }
+
+    public async Task<Result> SendConfirmationEmailAsync(int userId, CancellationToken cancellationToken)
+    {
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken);
+
+        if (user is null)
+            return AuthValidationError.InvalidUserNameOrPassword;
+
+        if (user.EmailConfirmed)
+            return Result.Success();
+        
+        await SendConfirmationEmailAsync(user, cancellationToken);
+        
+        return Result.Success();
+    }
+
+    public async Task<Result> ConfirmUserEmailAsync(int userId, string token, CancellationToken cancellationToken = default)
+    {
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken);
+
+        if (user is null)
+            return AuthValidationError.InvalidUserNameOrPassword;
+
+        if (user.EmailConfirmed)
+            return Result.Success();
+        
+        var confirmResult = await _userManager.ConfirmEmailAsync(user, token);
+        
+        if (!confirmResult.Succeeded)
+            return AuthValidationError.EmailConfirmationFailed;
+        
+        return Result.Success();
     }
 
     public async Task<Result<AccessTokenResponseDto>> GetAccessTokenAsync(string email, string password, CancellationToken cancellationToken = default)
@@ -57,10 +99,8 @@ public class IdentityService : IIdentityService
 
         if (user is null)
             return AuthValidationError.InvalidUserNameOrPassword;
-
-        var isValidPassword = await _userManager.CheckPasswordAsync(user, password);
-
-        if (!isValidPassword)
+        
+        if (!await _userManager.CheckPasswordAsync(user, password))
             return AuthValidationError.InvalidUserNameOrPassword;
 
         var refreshToken = new RefreshTokenValueObject(
@@ -90,6 +130,31 @@ public class IdentityService : IIdentityService
         return await GetAccessTokenAsync(user, userRefreshToken);
     }
 
+    public async Task<Result> ChangePasswordAsync(int userId, string password, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken);
+
+        if (user is null)
+            return AuthValidationError.InvalidUserNameOrPassword;
+        
+        if (!user.EmailConfirmed)
+            return AuthValidationError.EmailNotConfirmed;
+        
+        var changePasswordResult = await _userManager.ChangePasswordAsync(user, password, newPassword);
+        
+        if (!changePasswordResult.Succeeded)
+            return AuthValidationError.ChangePasswordFailed;
+        
+        return Result.Success();
+    }
+    
+    private async Task SendConfirmationEmailAsync(UserEntity user, CancellationToken cancellationToken)
+    {
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        
+        await _emailSenderService.SendEmailConfirmationAsync(user.Email!, token, user.Id, cancellationToken);
+    }
+    
     private async Task<AccessTokenResponseDto> GetAccessTokenAsync(UserEntity user, RefreshTokenValueObject refreshToken)
     {
         var userRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault();

@@ -1,19 +1,21 @@
 ﻿using AutoriaClone.Api.Application.Constants.ValidationErrors;
 using AutoriaClone.Domain;
-using AutoriaClone.Domain.Aggregates.Entities.User;
+using AutoriaClone.Domain.Aggregates.ValueObjects.Address;
 using AutoriaClone.Domain.Providers.Abstract;
 using AutoriaClone.Domain.Results;
 using MediatR;
 
 namespace AutoriaClone.Api.Application.Commands.User;
 
-public record UpdateUserContactsCommand(
+public record UpdateUserCommand(
     string? FirstName,
     string? LastName,
     string? PhoneNumber,
-    string? TelegramUserName) : IRequest<Result>
+    string? TelegramUserName,
+    string? WebSiteUrl,
+    AddressValueObject? Address) : IRequest<Result>
 {
-    public class Handler : IRequestHandler<UpdateUserContactsCommand, Result>
+    public class Handler : IRequestHandler<UpdateUserCommand, Result>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserProvider _userProvider;
@@ -24,18 +26,20 @@ public record UpdateUserContactsCommand(
             _userProvider = userProvider;
         }
 
-        public async Task<Result> Handle(UpdateUserContactsCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(_userProvider.Id, cancellationToken);
 
             if (user is null)
                 return UserValidationError.NotFound;
 
-            var updateResult = user.UpdateContacts(new UserContactsValueObject(
+            var updateResult = user.Update(
                 request.FirstName,
                 request.LastName,
                 request.PhoneNumber,
-                request.TelegramUserName));
+                request.TelegramUserName,
+                request.WebSiteUrl,
+                request.Address);
 
             if (updateResult.IsFailure)
                 return updateResult;

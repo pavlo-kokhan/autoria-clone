@@ -1,7 +1,37 @@
-﻿services:
+﻿version: "3.9"
+
+networks:
+  internalnetwork:
+    driver: bridge
+
+services:
   autoriaclone.api:
     image: autoriaclone.api
+    container_name: AutoriaClone.Api
     build:
       context: .
       dockerfile: AutoriaClone.Api/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - internalnetwork
 
+  autoriaclone.postgres:
+    image: postgres:18-alpine
+    container_name: AutoriaClone.Postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: SuperPassword
+      POSTGRES_DB: autoria_clone_db
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internalnetwork
+
+volumes:
+  postgres_data:

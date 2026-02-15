@@ -27,6 +27,18 @@ public static partial class ValidationExtensions
         return entity;
     }
     
+    public static void Id<T>(this IRuleBuilder<T, int> builder)
+        => builder
+            .NotEmpty()
+            .GreaterThan(0)
+            .WithMessage("Invalid id.");
+    
+    public static void IdOptional<T>(this IRuleBuilderInitial<T, int?> builder)
+        => builder
+            .GreaterThan(0)
+            .When(x => x is not null)
+            .WithMessage("Invalid id.");
+    
     public static void Email<T>(this IRuleBuilderInitial<T, string> builder)
         => builder
             .NotEmpty()
@@ -39,31 +51,38 @@ public static partial class ValidationExtensions
             .Matches(PasswordRegex())
             .WithMessage("Invalid password structure or size.");
     
-    public static void FirstNameOptional<T>(this IRuleBuilderInitial<T, string?> builder)
+    public static void FirstNameOptional<T>(this IRuleBuilderInitial<T, string?> builder, Func<T, string?> propertySelector)
         => builder
             .MaximumLength(50)
-            .When(x => x is not null)
+            .When(x => !string.IsNullOrEmpty(propertySelector(x)))
             .WithMessage("First name should be less than 50 characters.");
     
-    public static void LastNameOptional<T>(this IRuleBuilderInitial<T, string?> builder)
+    public static void LastNameOptional<T>(this IRuleBuilderInitial<T, string?> builder, Func<T, string?> propertySelector)
         => builder
             .MaximumLength(50)
-            .When(x => x is not null)
+            .When(x => !string.IsNullOrEmpty(propertySelector(x)))
             .WithMessage("Last name should be less than 50 characters.");
     
-    public static void PhoneNumberOptional<T>(this IRuleBuilderInitial<T, string?> builder)
+    public static void PhoneNumberOptional<T>(this IRuleBuilderInitial<T, string?> builder, Func<T, string?> propertySelector)
         => builder
-            .Must(x => x is not null && x.StartsWith("+"))
             .MaximumLength(15)
-            .When(x => x is not null)
+            .Must(x => x.StartsWith("+"))
+            .When(x => !string.IsNullOrEmpty(propertySelector(x)))
             .WithMessage("Invalid phone number. Phone number should start with + character and be less then 15 characters.");
     
-    public static void TelegramUserNameOptional<T>(this IRuleBuilderInitial<T, string?> builder)
+    public static void TelegramUserNameOptional<T>(this IRuleBuilderInitial<T, string?> builder, Func<T, string?> propertySelector)
         => builder
-            .Must(x => x is not null && x.StartsWith("@"))
             .MaximumLength(32)
-            .When(x => x is not null)
+            .Must(x => x.StartsWith("@"))
+            .When(x => !string.IsNullOrEmpty(propertySelector(x)))
             .WithMessage("Invalid telegram user name.");
+    
+    public static void WebSiteUrlOptional<T>(this IRuleBuilderInitial<T, string?> builder, Func<T, string?> propertySelector)
+        => builder
+            .MinimumLength(8)
+            .Must(x => x.StartsWith("https://"))
+            .When(x => !string.IsNullOrEmpty(propertySelector(x)))
+            .WithMessage("Invalid website url.");
     
     public static void FileName<T>(this IRuleBuilderInitial<T, string> builder)
     {

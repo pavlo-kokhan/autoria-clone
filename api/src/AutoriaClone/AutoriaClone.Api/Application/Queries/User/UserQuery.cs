@@ -7,7 +7,7 @@ using MediatR;
 
 namespace AutoriaClone.Api.Application.Queries.User;
 
-public record UserQuery : IRequest<Result<UserResponseDto>>
+public record UserQuery(int? Id) : IRequest<Result<UserResponseDto>>
 {
     public class Handler : IRequestHandler<UserQuery, Result<UserResponseDto>>
     {
@@ -22,17 +22,21 @@ public record UserQuery : IRequest<Result<UserResponseDto>>
 
         public async Task<Result<UserResponseDto>> Handle(UserQuery request, CancellationToken cancellationToken)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(_userProvider.Id, cancellationToken);
+            var userId = request.Id ?? _userProvider.Id;
+            
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken);
             
             if (user is null)
                 return UserValidationError.NotFound;
             
             return new UserResponseDto(
                 user.Email!,
-                user.Contacts?.FirstName,
-                user.Contacts?.LastName,
-                user.Contacts?.PhoneNumber,
-                user.Contacts?.TelegramUserName);
+                user.FirstName,
+                user.LastName,
+                user.PhoneNumber,
+                user.TelegramUserName,
+                user.WebSiteUrl,
+                user.Address);
         }
     }
 }

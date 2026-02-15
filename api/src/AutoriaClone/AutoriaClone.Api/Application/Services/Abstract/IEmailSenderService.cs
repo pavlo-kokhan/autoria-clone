@@ -4,5 +4,5 @@ namespace AutoriaClone.Api.Application.Services.Abstract;
 
 public interface IEmailSenderService
 {
-    Task<Result> SendAsync(string toEmail, string subject, string body, CancellationToken cancellationToken = default);
+    Task<Result> SendEmailConfirmationAsync(string toEmail, string token, int userId, CancellationToken cancellationToken = default);
 }

@@ -5,6 +5,7 @@ using AutoriaClone.Api.Application.Services;
 using AutoriaClone.Api.Application.Services.Abstract;
 using AutoriaClone.Api.Application.Services.BackgroundServices;
 using AutoriaClone.Api.Application.Services.File;
+using AutoriaClone.Api.Application.Services.Identity;
 using AutoriaClone.Api.Application.Services.Providers;
 using AutoriaClone.Api.Extensions;
 using AutoriaClone.Api.Filters;
@@ -32,7 +33,8 @@ builder.Services
     .AddDatabaseContext(builder.Configuration)
     .AddRepositories()
     .AddHttpContextAccessor()
-    .AddFluentEmail(builder.Configuration)
+    .AddEmailService(builder.Configuration)
+    .AddBaseUrlOptions(builder.Configuration)
     .AddControllers(options =>
     {
         options.Filters.Add<ResultableActionFilterAttribute>();
@@ -50,7 +52,7 @@ builder.Services
     .AddScoped<IBlobsConnectionVerifier, BlobsConnectionVerifier>()
     .AddHostedService<InitialBackgroundService>()
     .AddSingleton<IStorageService, AzureStorageService>()
-    .AddScoped<IEmailSenderService, SmtpEmailSenderService>();
+    .AddScoped<IEmailSenderService, AzureEmailSenderService>();
 
 var app = builder.Build();
 

@@ -19,10 +19,10 @@ public class UserController : ControllerBase
         => _mediator = mediator;
     
     [HttpGet]
-    public async Task<IActionResult> GetAsync(CancellationToken cancellationToken)
-        => (await _mediator.Send(new UserQuery(), cancellationToken)).ToActionResult();
+    public async Task<IActionResult> GetAsync(int? id, CancellationToken cancellationToken)
+        => (await _mediator.Send(new UserQuery(id), cancellationToken)).ToActionResult();
     
-    [HttpPut("contacts")]
-    public async Task<IActionResult> UpdateContactsAsync(UpdateUserContactsCommand request, CancellationToken cancellationToken)
+    [HttpPut]
+    public async Task<IActionResult> UpdateAsync(UpdateUserCommand request, CancellationToken cancellationToken)
         => (await _mediator.Send(request, cancellationToken)).ToActionResult();
 }
