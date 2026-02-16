@@ -7,15 +7,15 @@ using AutoriaClone.Api.Application.Services.BackgroundServices;
 using AutoriaClone.Api.Application.Services.File;
 using AutoriaClone.Api.Application.Services.Identity;
 using AutoriaClone.Api.Application.Services.Providers;
-using AutoriaClone.Api.Application.Services.Providers.RegionProvider;
 using AutoriaClone.Api.Application.Services.Providers.RegionProvider.NovaPoshta;
 using AutoriaClone.Api.Application.Services.Providers.RegionProvider.UkrPoshta;
 using AutoriaClone.Api.Extensions;
 using AutoriaClone.Api.Filters;
 using AutoriaClone.Api.Middlewares;
+using AutoriaClone.Domain.Providers;
 using AutoriaClone.Domain.Providers.Abstract;
-using AutoriaClone.Infrastructure;
 using AutoriaClone.Infrastructure.Persistence;
+using AutoriaClone.Infrastructure.Seeders;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using static Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults;
@@ -51,7 +51,9 @@ builder.Services
     .AddScoped<AccessTokenMiddleware>()
     .AddScoped<IIdentityService, IdentityService>()
     .AddScoped<IUserProvider, UserProvider>()
-    .AddScoped<DatabaseSeeder>()
+    .AddSingleton<ICurrencyProvider, CurrencyProvider>()
+    .AddScoped<IdentitySeeder>()
+    .AddScoped<VehicleSeeder>()
     .AddAzureBlobServiceClient(builder.Configuration)
     .AddScoped<IBlobsConnectionVerifier, BlobsConnectionVerifier>()
     .AddHostedService<InitialBackgroundService>()
@@ -86,8 +88,15 @@ app.MapControllers();
 
 using var scope = app.Services.CreateScope();
 await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
-await scope.ServiceProvider.GetRequiredService<DatabaseSeeder>().SeedAsync();
-await scope.ServiceProvider.GetRequiredService<INovaPoshtaRegionProvider>().GetRegionsAsync();
-await scope.ServiceProvider.GetRequiredService<INovaPoshtaRegionProvider>().GetCitiesAsync("71508138-9b87-11de-822f-000c2965ae0e");
+await scope.ServiceProvider.GetRequiredService<IdentitySeeder>().SeedAsync();
+
+try
+{
+    await scope.ServiceProvider.GetRequiredService<VehicleSeeder>().SeedAsync();
+}
+catch (Exception)
+{
+    // ignored
+}
 
 await app.RunAsync();

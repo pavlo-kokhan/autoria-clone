@@ -4,15 +4,15 @@ using AutoriaClone.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace AutoriaClone.Infrastructure;
+namespace AutoriaClone.Infrastructure.Seeders;
 
-public sealed class DatabaseSeeder
+public sealed class IdentitySeeder
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly UserManager<UserEntity> _userManager;
     private readonly RoleManager<IdentityRole<int>> _roleManager;
 
-    public DatabaseSeeder(ApplicationDbContext dbContext, UserManager<UserEntity> userManager, RoleManager<IdentityRole<int>> roleManager)
+    public IdentitySeeder(ApplicationDbContext dbContext, UserManager<UserEntity> userManager, RoleManager<IdentityRole<int>> roleManager)
     {
         _dbContext = dbContext;
         _userManager = userManager;
