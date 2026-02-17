@@ -1,8 +1,12 @@
-﻿using AutoriaClone.Api.Application.Queries.Vehicle.Category;
+﻿using AutoriaClone.Api.Application.Helpers;
+using AutoriaClone.Api.Application.Queries.Vehicle.Category;
 using AutoriaClone.Api.Application.Queries.Vehicle.Generation;
 using AutoriaClone.Api.Application.Queries.Vehicle.Make;
 using AutoriaClone.Api.Application.Queries.Vehicle.Model;
+using AutoriaClone.Api.Application.Responses.Vehicle.Lookup;
 using AutoriaClone.Api.Extensions;
+using AutoriaClone.Domain.Aggregates.Entities.Advertisement.Enums;
+using AutoriaClone.Domain.Aggregates.Entities.Advertisement.Flags;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,4 +36,8 @@ public class VehicleDetailsController : ControllerBase
     [HttpGet("generations/{modelId}")]
     public async Task<IActionResult> GetGenerationsAsync(int modelId, CancellationToken cancellationToken)
         => (await _mediator.Send(new GenerationsByModelIdQuery(modelId), cancellationToken)).ToActionResult();
+
+    [HttpGet("lookups")]
+    public ActionResult<LookupsResponseDto> GetLookups() 
+        => Ok(LookupHelper.GetLookups());
 }
