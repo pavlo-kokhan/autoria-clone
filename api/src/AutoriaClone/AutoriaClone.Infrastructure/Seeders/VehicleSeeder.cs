@@ -3,6 +3,7 @@ using AutoriaClone.Domain.Aggregates.Entities.Advertisement;
 using AutoriaClone.Infrastructure.Persistence;
 using AutoriaClone.Infrastructure.Seeders.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AutoriaClone.Infrastructure.Seeders;
 
@@ -11,28 +12,52 @@ public class VehicleSeeder
     private static readonly string FilePath = Path.Combine(AppContext.BaseDirectory, "Seeders", "Data", "car-brands.json");
     
     private readonly ApplicationDbContext _dbContext;
+    private readonly ILogger<VehicleSeeder> _logger;
 
-    public VehicleSeeder(ApplicationDbContext dbContext) 
-        => _dbContext = dbContext;
-    
+    public VehicleSeeder(ApplicationDbContext dbContext, ILogger<VehicleSeeder> logger)
+    {
+        _dbContext = dbContext;
+        _logger = logger;
+    }
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         if (await _dbContext.Categories.AnyAsync(cancellationToken))
             return;
-        
+
         if (!File.Exists(FilePath))
-            throw new FileNotFoundException($"Seed data file not found at: {FilePath}.");
-
-        var jsonContent = await File.ReadAllTextAsync(FilePath, cancellationToken);
-        var brandsData = JsonSerializer.Deserialize<List<BrandDto>>(jsonContent, new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
-        });
+            _logger.LogError("Failed to open seed data file. Vehicles data will not be seeded.");
 
-        if (brandsData == null || !brandsData.Any())
             return;
+        }
 
-        var category = await GetOrCreateCategoryAsync("Легкові", cancellationToken);
+        List<BrandDto>? brandsData;
+        
+        try
+        {
+            var jsonContent = await File.ReadAllTextAsync(FilePath, cancellationToken);
+        
+            brandsData = JsonSerializer.Deserialize<List<BrandDto>>(jsonContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (brandsData == null || !brandsData.Any())
+            {
+                _logger.LogError("Failed to read seed data file.");
+            
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to read seed data file with exception: {ex}");
+            
+            return;
+        }
+
+        var category = await SeedCategoriesAsync(cancellationToken);
 
         foreach (var brandDto in brandsData)
         {
@@ -110,15 +135,13 @@ public class VehicleSeeder
         }
     }
 
-    private async Task<CategoryEntity> GetOrCreateCategoryAsync(string name, CancellationToken ct)
+    private async Task<CategoryEntity> SeedCategoriesAsync(CancellationToken cancellationToken)
     {
-        var category = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Name == name, ct);
-        if (category == null)
-        {
-            category = CategoryEntity.Create(name).Data;
-            _dbContext.Categories.Add(category);
-            await _dbContext.SaveChangesAsync(ct);
-        }
+        var category = CategoryEntity.Create("Легкові").Data;
+            
+        await _dbContext.Categories.AddAsync(category, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
         return category;
     }
 }

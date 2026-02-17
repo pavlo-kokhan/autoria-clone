@@ -89,14 +89,6 @@ app.MapControllers();
 using var scope = app.Services.CreateScope();
 await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
 await scope.ServiceProvider.GetRequiredService<IdentitySeeder>().SeedAsync();
-
-try
-{
-    await scope.ServiceProvider.GetRequiredService<VehicleSeeder>().SeedAsync();
-}
-catch (Exception)
-{
-    // ignored
-}
+await scope.ServiceProvider.GetRequiredService<VehicleSeeder>().SeedAsync();
 
 await app.RunAsync();
